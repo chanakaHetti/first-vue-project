@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const msg = ref('Shopping list App');
 
@@ -11,20 +11,35 @@ const iceCreamFlavors = ref(['chocolate']);
 
 const editing = ref(false);
 const items = ref([
-  // { id: 1, label: '10 party hats' },
-  // { id: 2, label: '2 board games' },
-  // { id: 3, label: '20 cups' },
+  { id: 1, label: '10 party hats', purchased: true, highpriority: true },
+  { id: 2, label: '2 board games', purchased: false, highpriority: true },
+  { id: 3, label: '20 cups', purchased: true, highpriority: false },
 ]);
+const reversedItem = computed(() => {
+  return [...items.value].reverse();
+});
 const newItem = ref('');
 
+const charCount = computed(() => {
+  return newItem.value.length;
+});
+
 const saveItem = () => {
-  items.value.push({ id: items.value.length + 1, label: newItem.value });
+  items.value.push({
+    id: items.value.length + 1,
+    label: newItem.value,
+    highpriority: false,
+  });
   newItem.value = '';
 };
 
 const doEdit = (e) => {
   editing.value = e;
   newItem.value = '';
+};
+
+const togglePurchased = (item) => {
+  item.purchased = !item.purchased;
 };
 </script>
 
@@ -108,20 +123,43 @@ const doEdit = (e) => {
     <br />
     <br />
 
+    <a v-bind:href="newItem">Dynamic Link</a>
+
+    <br />
+    <br />
+
     <form v-if="editing" @submit.prevent="saveItem">
       Add Items:
       <input v-model.trim="newItem" type="text" placeholder="Add a new item" />
-      <button>Add a New Item</button>
-
-      <ul>
-        <li v-for="({ id, label }, index) in items" :key="id">
-          {{ label }}
-        </li>
-      </ul>
-
-      <p v-if="!items.length">Nothing to see here!</p>
+      <button :disabled="newItem.length < 5">Add a New Item</button>
     </form>
+    <p>{{ charCount }} / 200</p>
+
+    <ul>
+      <li
+        v-for="({ id, label, purchased, highpriority }, index) in reversedItem"
+        @click="togglePurchased(reversedItem[index])"
+        :key="id"
+        class="items"
+        :class="{ strikeout: purchased, priority: highpriority }"
+      >
+        {{ label }}
+      </li>
+    </ul>
+
+    <p v-if="!items.length">Nothing to see here!</p>
   </main>
 </template>
 
-<style scoped></style>
+<style scoped>
+.item {
+  font-size: 20px;
+  line-height: 25px;
+}
+.strikeout {
+  text-decoration: line-through;
+}
+.priority {
+  color: rgb(141, 13, 13);
+}
+</style>
